@@ -1,0 +1,58 @@
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from email.utils import formataddr
+from email.mime.multipart import MIMEMultipart 
+from email.mime.base import MIMEBase 
+from email import encoders 
+sender_email = 'ankitchess262611@gmail.com'
+sender_name = 'Ankit Yadav'
+password = input('Please, type your password:\n')
+
+receiver_emails = ['ankityadav262611@gmail.com',
+									 'ankitchess262611@gmail.com', 'awswithgmai1@gmail.com']
+receiver_names = ['my1',
+									'my2', 'my3']
+
+email_html = open('email.html')
+email_body = email_html.read()
+
+filename = 'cat.gif'
+
+for receiver_email, receiver_name in zip(receiver_emails, receiver_names):
+		print("Sending the email...")
+		msg = MIMEMultipart()
+		msg['To'] = formataddr((receiver_name, receiver_email))
+		msg['From'] = formataddr((sender_name, sender_email))
+		msg['Subject'] = 'Hello, my friend ' + receiver_name
+		
+		msg.attach(MIMEText(email_body, 'html'))
+
+		try:
+			with open(filename, "rb") as attachment:
+							part = MIMEBase("application", "octet-stream")
+							part.set_payload(attachment.read())
+			encoders.encode_base64(part)
+			part.add_header(
+					"Content-Disposition",
+					f"attachment; filename= {filename}",
+			)
+
+			msg.attach(part)
+		except Exception as e:
+				print(f'Att error\n{e}')
+				break
+
+		try:
+				server = smtplib.SMTP('smtp.gmail.com', 587)
+				context = ssl.create_default_context()
+				server.starttls(context=context)
+				server.login(sender_email, password)
+				server.sendmail(sender_email, receiver_email, msg.as_string())
+				print('Email sent!')
+		except Exception as e:
+				print(f'ERROR!\n{e}')
+				break
+		finally:
+				print('Closing the server...')
+				server.quit()
